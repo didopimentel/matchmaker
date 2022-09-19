@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/didopimentel/matchmaker/api"
+	"github.com/didopimentel/matchmaker/domain/matchmaking"
 	"github.com/didopimentel/matchmaker/domain/tickets"
 	"github.com/go-redis/redis/v9"
 	"github.com/gorilla/mux"
@@ -19,6 +20,7 @@ func main() {
 
 	ticketsRedisSetName := "tickets"
 
+	// Tickets API
 	ticketsAPI := api.NewTicketsAPI(&struct {
 		*tickets.CreateTicketUseCase
 		*tickets.GetTicketUseCase
@@ -29,5 +31,19 @@ func main() {
 
 	router.HandleFunc("/matchmaking/tickets", ticketsAPI.CreateMatchmakingTicket).Methods("POST")
 	router.HandleFunc("/matchmaking/players/{id}/ticket", ticketsAPI.GetMatchmakingTicket).Methods("GET")
+
+	// Matchmaking API
+	matchmakingAPI := api.NewMatchmakingAPI(&struct {
+		*matchmaking.MatchPlayersUseCase
+	}{
+		MatchPlayersUseCase: matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
+			MinCountPerMatch:    2,
+			MaxCountPerMatch:    4,
+			TicketsRedisSetName: ticketsRedisSetName,
+		}),
+	})
+
+	router.HandleFunc("/matchmaking/match-players", matchmakingAPI.MatchPlayers).Methods("GET")
+
 	log.Fatal(http.ListenAndServe(":8000", router))
 }

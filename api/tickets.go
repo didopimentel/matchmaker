@@ -27,6 +27,8 @@ func NewTicketsAPI(uc TicketsAPIUseCases) *TicketsAPI {
 type CreateMatchmakingTicketRequest struct {
 	Parameters []entities.MatchmakingTicketParameter `json:"parameters"`
 	PlayerID   string                                `json:"player_id"`
+	League     int64                                 `json:"league"`
+	Table      int64                                 `json:"table"`
 }
 
 func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, request *http.Request) {
@@ -47,7 +49,12 @@ func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, reque
 		return
 	}
 
-	output, err := api.uc.CreateTicket(ctx, tickets.CreateTicketInput{Parameters: req.Parameters, PlayerID: req.PlayerID})
+	output, err := api.uc.CreateTicket(ctx, tickets.CreateTicketInput{
+		PlayerID:   req.PlayerID,
+		League:     req.League,
+		Table:      req.Table,
+		Parameters: req.Parameters,
+	})
 	if err != nil {
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
