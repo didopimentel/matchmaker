@@ -46,6 +46,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 	result := m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", 10)
 
 	var matchedSessions []PlayerSession
+	alreadyMatchedPlayers := map[string]bool{}
 	for {
 		tickets, cursor, err := result.Result()
 		if err != nil {
@@ -53,6 +54,10 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 		}
 
 		for i := 0; i < len(tickets); i = i + 2 {
+			if alreadyMatchedPlayers[tickets[i]] == true {
+				continue
+			}
+
 			playerTicketBytes := []byte(tickets[i+1])
 
 			var playerTicket entities.MatchmakingTicket
@@ -134,6 +139,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 					if m.redisGateway.HDel(ctx, m.cfg.TicketsRedisSetName, opponent).Err() != nil {
 						return MatchPlayersOutput{}, err
 					}
+					alreadyMatchedPlayers[opponent] = true
 				}
 				// TODO: add match logic
 			}
