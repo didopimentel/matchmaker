@@ -13,11 +13,12 @@ type GetTicketUseCaseRedisGateway interface {
 }
 
 type GetTicketUseCase struct {
-	redisGateway GetTicketUseCaseRedisGateway
+	redisGateway        GetTicketUseCaseRedisGateway
+	ticketsRedisSetName string
 }
 
-func NewGetTicketUseCase(redisGateway GetTicketUseCaseRedisGateway) *GetTicketUseCase {
-	return &GetTicketUseCase{redisGateway: redisGateway}
+func NewGetTicketUseCase(redisGateway GetTicketUseCaseRedisGateway, ticketsRedisSetName string) *GetTicketUseCase {
+	return &GetTicketUseCase{redisGateway: redisGateway, ticketsRedisSetName: ticketsRedisSetName}
 }
 
 type GetTicketInput struct {
@@ -28,7 +29,7 @@ type GetTicketOutput struct {
 }
 
 func (c *GetTicketUseCase) GetTicket(ctx context.Context, input GetTicketInput) (GetTicketOutput, error) {
-	result := c.redisGateway.HGet(ctx, "tickets", input.PlayerID)
+	result := c.redisGateway.HGet(ctx, c.ticketsRedisSetName, input.PlayerID)
 	if result.Err() != nil {
 		log.Print(result.Err())
 		return GetTicketOutput{}, result.Err()

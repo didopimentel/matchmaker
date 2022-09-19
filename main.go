@@ -17,12 +17,14 @@ func main() {
 	})
 	router := mux.NewRouter()
 
+	ticketsRedisSetName := "tickets"
+
 	ticketsAPI := api.NewTicketsAPI(&struct {
 		*tickets.CreateTicketUseCase
 		*tickets.GetTicketUseCase
 	}{
-		CreateTicketUseCase: tickets.NewCreateTicketUseCase(redisClient),
-		GetTicketUseCase:    tickets.NewGetTicketUseCase(redisClient),
+		CreateTicketUseCase: tickets.NewCreateTicketUseCase(redisClient, ticketsRedisSetName),
+		GetTicketUseCase:    tickets.NewGetTicketUseCase(redisClient, ticketsRedisSetName),
 	})
 
 	router.HandleFunc("/matchmaking/tickets", ticketsAPI.CreateMatchmakingTicket).Methods("POST")

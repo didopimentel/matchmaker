@@ -16,11 +16,12 @@ type CreateTicketUseCaseRedisGateway interface {
 }
 
 type CreateTicketUseCase struct {
-	redisGateway CreateTicketUseCaseRedisGateway
+	redisGateway        CreateTicketUseCaseRedisGateway
+	ticketsRedisSetName string
 }
 
-func NewCreateTicketUseCase(redisGateway CreateTicketUseCaseRedisGateway) *CreateTicketUseCase {
-	return &CreateTicketUseCase{redisGateway: redisGateway}
+func NewCreateTicketUseCase(redisGateway CreateTicketUseCaseRedisGateway, ticketsRedisSetName string) *CreateTicketUseCase {
+	return &CreateTicketUseCase{redisGateway: redisGateway, ticketsRedisSetName: ticketsRedisSetName}
 }
 
 type CreateTicketInput struct {
@@ -43,7 +44,7 @@ func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTick
 	}
 
 	// TODO: parameterize ttl
-	set := c.redisGateway.HSet(ctx, "tickets", input.PlayerID, ticket)
+	set := c.redisGateway.HSet(ctx, c.ticketsRedisSetName, input.PlayerID, ticket)
 	if set.Err() != nil {
 		log.Print(set.Err())
 		return CreateTicketOutput{}, set.Err()

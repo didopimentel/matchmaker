@@ -17,8 +17,9 @@ type MatchPlayersUseCaseRedisGateway interface {
 }
 
 type MatchPlayerUseCaseConfig struct {
-	MinCountPerMatch int32
-	MaxCountPerMatch int32
+	MinCountPerMatch    int32
+	MaxCountPerMatch    int32
+	TicketsRedisSetName string
 }
 type MatchPlayersUseCase struct {
 	redisGateway MatchPlayersUseCaseRedisGateway
@@ -42,7 +43,7 @@ type PlayerSession struct {
 }
 
 func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOutput, error) {
-	result := m.redisGateway.HScan(ctx, "tickets", 0, "", 10)
+	result := m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", 10)
 
 	var matchedSessions []PlayerSession
 	for {
@@ -130,7 +131,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 							return MatchPlayersOutput{}, err
 						}
 					}
-					if m.redisGateway.HDel(ctx, "tickets", opponent).Err() != nil {
+					if m.redisGateway.HDel(ctx, m.cfg.TicketsRedisSetName, opponent).Err() != nil {
 						return MatchPlayersOutput{}, err
 					}
 				}
@@ -139,7 +140,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 
 		}
 
-		result = m.redisGateway.HScan(ctx, "tickets", 0, "", 10)
+		result = m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", 10)
 		// Finished iterating through matchmaking tickets
 		if cursor == 0 {
 			break

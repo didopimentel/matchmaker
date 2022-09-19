@@ -118,8 +118,9 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 	}
 
 	matchPlayersUseCase := matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
-		MinCountPerMatch: 2,
-		MaxCountPerMatch: 2,
+		MinCountPerMatch:    2,
+		MaxCountPerMatch:    2,
+		TicketsRedisSetName: "tickets",
 	})
 	output, err := matchPlayersUseCase.MatchPlayers(ctx)
 	require.NoError(t, err)
