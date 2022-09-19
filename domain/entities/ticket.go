@@ -5,6 +5,8 @@ import "encoding/json"
 type MatchmakingTicket struct {
 	ID         string
 	PlayerID   string
+	League     int64
+	Table      int64
 	Parameters []MatchmakingTicketParameter
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 type GetTicketUseCaseRedisGateway interface {
-	Get(ctx context.Context, key string) *redis.StringCmd
+	HGet(ctx context.Context, key, field string) *redis.StringCmd
 }
 
 type GetTicketUseCase struct {
@@ -21,14 +21,14 @@ func NewGetTicketUseCase(redisGateway GetTicketUseCaseRedisGateway) *GetTicketUs
 }
 
 type GetTicketInput struct {
-	ID string
+	PlayerID string
 }
 type GetTicketOutput struct {
 	Ticket entities.MatchmakingTicket
 }
 
 func (c *GetTicketUseCase) GetTicket(ctx context.Context, input GetTicketInput) (GetTicketOutput, error) {
-	result := c.redisGateway.Get(ctx, input.ID)
+	result := c.redisGateway.HGet(ctx, "tickets", input.PlayerID)
 	if result.Err() != nil {
 		log.Print(result.Err())
 		return GetTicketOutput{}, result.Err()

@@ -5,32 +5,28 @@ import (
 	"github.com/didopimentel/matchmaker/domain/entities"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
 )
 
 type CreateTicketUseCaseRedisGateway interface {
+	HSet(ctx context.Context, key string, values ...interface{}) *redis.IntCmd
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
-}
-
-type CreateTicketUseCaseMongoGateway interface {
-	FindOne(ctx context.Context, filter interface{}, opts ...*options.FindOneOptions) *mongo.SingleResult
+	ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
 }
 
 type CreateTicketUseCase struct {
 	redisGateway CreateTicketUseCaseRedisGateway
-	mongoGateway CreateTicketUseCaseMongoGateway
 }
 
-func NewCreateTicketUseCase(redisGateway CreateTicketUseCaseRedisGateway, mongoGateway CreateTicketUseCaseMongoGateway) *CreateTicketUseCase {
-	return &CreateTicketUseCase{redisGateway: redisGateway, mongoGateway: mongoGateway}
+func NewCreateTicketUseCase(redisGateway CreateTicketUseCaseRedisGateway) *CreateTicketUseCase {
+	return &CreateTicketUseCase{redisGateway: redisGateway}
 }
 
 type CreateTicketInput struct {
 	PlayerID   string
+	League     int64
+	Table      int64
 	Parameters []entities.MatchmakingTicketParameter
 }
 type CreateTicketOutput struct {
@@ -40,22 +36,32 @@ type CreateTicketOutput struct {
 func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTicketInput) (CreateTicketOutput, error) {
 	ticket := entities.MatchmakingTicket{
 		ID:         uuid.NewString(),
-		Parameters: input.Parameters,
 		PlayerID:   input.PlayerID,
-	}
-
-	var player entities.Player
-	err := c.mongoGateway.FindOne(ctx, bson.M{"id": input.PlayerID}).Decode(&player)
-	if err != nil {
-		log.Print(err)
-		return CreateTicketOutput{}, err
+		League:     input.League,
+		Table:      input.Table,
+		Parameters: input.Parameters,
 	}
 
 	// TODO: parameterize ttl
-	set := c.redisGateway.Set(ctx, ticket.ID, ticket, 5*time.Minute)
+	set := c.redisGateway.HSet(ctx, "tickets", input.PlayerID, ticket)
 	if set.Err() != nil {
 		log.Print(set.Err())
 		return CreateTicketOutput{}, set.Err()
+	}
+
+	cmd := c.redisGateway.ZAdd(ctx, string(entities.MatchmakingTicketParameterType_Table), redis.Z{
+		Score:  float64(input.Table),
+		Member: input.PlayerID,
+	})
+	if cmd.Err() != nil {
+		log.Print(cmd.Err())
+	}
+	cmd = c.redisGateway.ZAdd(ctx, string(entities.MatchmakingTicketParameterType_League), redis.Z{
+		Score:  float64(input.League),
+		Member: input.PlayerID,
+	})
+	if cmd.Err() != nil {
+		log.Print(cmd.Err())
 	}
 
 	return CreateTicketOutput{

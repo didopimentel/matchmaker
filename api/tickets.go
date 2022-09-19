@@ -70,13 +70,13 @@ func (api *TicketsAPI) GetMatchmakingTicket(writer http.ResponseWriter, request 
 	ctx := context.Background()
 	vars := mux.Vars(request)
 
-	ticketId, ok := vars["id"]
+	playerId, ok := vars["id"]
 	if !ok {
 		writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	output, err := api.uc.GetTicket(ctx, tickets.GetTicketInput{ID: ticketId})
+	output, err := api.uc.GetTicket(ctx, tickets.GetTicketInput{PlayerID: playerId})
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
