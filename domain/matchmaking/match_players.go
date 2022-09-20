@@ -7,6 +7,7 @@ import (
 	"github.com/didopimentel/matchmaker/domain/entities"
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
+	"log"
 )
 
 type MatchPlayersUseCaseRedisGateway interface {
@@ -160,6 +161,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 		}
 	}
 
+	log.Println("Matched Players: ", matchedSessions)
 	return MatchPlayersOutput{
 		matchedSessions,
 	}, nil

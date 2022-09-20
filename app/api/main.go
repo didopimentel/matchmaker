@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/didopimentel/matchmaker/api"
+	"github.com/didopimentel/matchmaker/app/api/handlers"
 	"github.com/didopimentel/matchmaker/domain/matchmaking"
 	"github.com/didopimentel/matchmaker/domain/tickets"
 	"github.com/go-redis/redis/v9"
@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	cfg, err := api.LoadConfig(".")
+	cfg, err := LoadConfig(".")
 	if err != nil {
 		panic(err)
 	}
@@ -24,7 +24,7 @@ func main() {
 	router := mux.NewRouter()
 
 	// Tickets API
-	ticketsAPI := api.NewTicketsAPI(&struct {
+	ticketsAPI := handlers.NewTicketsAPI(&struct {
 		*tickets.CreateTicketUseCase
 		*tickets.GetTicketUseCase
 	}{
@@ -36,7 +36,7 @@ func main() {
 	router.HandleFunc("/matchmaking/players/{id}/ticket", ticketsAPI.GetMatchmakingTicket).Methods("GET")
 
 	// Matchmaking API
-	matchmakingAPI := api.NewMatchmakingAPI(&struct {
+	matchmakingAPI := handlers.NewMatchmakingAPI(&struct {
 		*matchmaking.MatchPlayersUseCase
 	}{
 		MatchPlayersUseCase: matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
