@@ -2,6 +2,14 @@ package entities
 
 import "encoding/json"
 
+type MatchmakingStatus string
+
+const (
+	MatchmakingStatus_Pending MatchmakingStatus = "pending"
+	MatchmakingStatus_Found   MatchmakingStatus = "found"
+	MatchmakingStatus_Expired MatchmakingStatus = "expired"
+)
+
 type MatchmakingTicket struct {
 	ID         string
 	PlayerID   string

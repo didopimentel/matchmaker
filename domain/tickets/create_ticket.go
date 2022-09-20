@@ -6,12 +6,10 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"log"
-	"time"
 )
 
 type CreateTicketUseCaseRedisGateway interface {
 	HSet(ctx context.Context, key string, values ...interface{}) *redis.IntCmd
-	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 	ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
 }
 

@@ -6,20 +6,22 @@ import (
 	"fmt"
 	"github.com/didopimentel/matchmaker/domain/entities"
 	"github.com/go-redis/redis/v9"
+	"github.com/google/uuid"
 )
 
 type MatchPlayersUseCaseRedisGateway interface {
-	Get(ctx context.Context, key string) *redis.StringCmd
 	HScan(ctx context.Context, key string, cursor uint64, match string, count int64) *redis.ScanCmd
 	ZRangeByScore(ctx context.Context, key string, opt *redis.ZRangeBy) *redis.StringSliceCmd
 	ZRem(ctx context.Context, key string, members ...interface{}) *redis.IntCmd
 	HDel(ctx context.Context, key string, fields ...string) *redis.IntCmd
+	HSet(ctx context.Context, key string, values ...interface{}) *redis.IntCmd
 }
 
 type MatchPlayerUseCaseConfig struct {
 	MinCountPerMatch    int32
 	MaxCountPerMatch    int32
 	TicketsRedisSetName string
+	MatchesRedisSetName string
 }
 type MatchPlayersUseCase struct {
 	redisGateway MatchPlayersUseCaseRedisGateway
@@ -39,6 +41,7 @@ type MatchPlayersOutput struct {
 	CreatedSessions []PlayerSession
 }
 type PlayerSession struct {
+	SessionID string
 	PlayerIDs []string
 }
 
@@ -129,7 +132,9 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 
 			// Found a match!
 			if int32(len(eligibleOpponents)) >= m.cfg.MinCountPerMatch {
-				matchedSessions = append(matchedSessions, PlayerSession{PlayerIDs: eligibleOpponents})
+				// this could be an id or the address of a game server match
+				gameSessionId := uuid.New().String()
+				matchedSessions = append(matchedSessions, PlayerSession{PlayerIDs: eligibleOpponents, SessionID: gameSessionId})
 				for _, opponent := range eligibleOpponents {
 					for _, parameter := range playerTicket.Parameters {
 						if m.redisGateway.ZRem(ctx, string(parameter.Type), opponent).Err() != nil {
@@ -140,8 +145,10 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 						return MatchPlayersOutput{}, err
 					}
 					alreadyMatchedPlayers[opponent] = true
+
+					// sets the game session id to each player matched
+					m.redisGateway.HSet(ctx, m.cfg.MatchesRedisSetName, opponent, gameSessionId)
 				}
-				// TODO: add match logic
 			}
 
 		}

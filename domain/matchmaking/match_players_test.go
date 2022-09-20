@@ -23,7 +23,10 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 		cmd := redisClient.FlushAll(ctx)
 		require.NoError(t, cmd.Err())
 
-		ticketsUseCase := tickets.NewCreateTicketUseCase(redisClient, "tickets")
+		ticketsRedisSetName := "tickets"
+		matchesRedisSetName := "matches"
+		ticketsUseCase := tickets.NewCreateTicketUseCase(redisClient, ticketsRedisSetName)
+		getTicketsUseCase := tickets.NewGetTicketUseCase(redisClient, ticketsRedisSetName, matchesRedisSetName)
 
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
@@ -118,10 +121,16 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			require.NoError(t, err)
 		}
 
+		getTicketOutput, err := getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerID: createTicketInputs[1].PlayerID})
+		require.NoError(t, err)
+
+		require.Equal(t, entities.MatchmakingStatus_Pending, getTicketOutput.Status)
+
 		matchPlayersUseCase := matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
 			MinCountPerMatch:    2,
 			MaxCountPerMatch:    2,
-			TicketsRedisSetName: "tickets",
+			TicketsRedisSetName: ticketsRedisSetName,
+			MatchesRedisSetName: matchesRedisSetName,
 		})
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
@@ -134,6 +143,21 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				t.Error("wrong players matched")
 			}
 		}
+
+		getTicketOutput, err = getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerID: output.CreatedSessions[0].PlayerIDs[0]})
+		require.NoError(t, err)
+
+		gameSessionId := getTicketOutput.GameSessionId
+		require.Equal(t, entities.MatchmakingStatus_Found, getTicketOutput.Status)
+		require.NotEqual(t, "", getTicketOutput.GameSessionId)
+
+		getTicketOutput, err = getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerID: output.CreatedSessions[0].PlayerIDs[1]})
+		require.NoError(t, err)
+
+		require.Equal(t, entities.MatchmakingStatus_Found, getTicketOutput.Status)
+		require.NotEqual(t, "", getTicketOutput.GameSessionId)
+
+		require.Equal(t, gameSessionId, getTicketOutput.GameSessionId)
 
 		cmd = redisClient.FlushAll(ctx)
 		require.NoError(t, cmd.Err())

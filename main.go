@@ -19,6 +19,7 @@ func main() {
 	router := mux.NewRouter()
 
 	ticketsRedisSetName := "tickets"
+	matchesRedisSetName := "matches"
 
 	// Tickets API
 	ticketsAPI := api.NewTicketsAPI(&struct {
@@ -26,7 +27,7 @@ func main() {
 		*tickets.GetTicketUseCase
 	}{
 		CreateTicketUseCase: tickets.NewCreateTicketUseCase(redisClient, ticketsRedisSetName),
-		GetTicketUseCase:    tickets.NewGetTicketUseCase(redisClient, ticketsRedisSetName),
+		GetTicketUseCase:    tickets.NewGetTicketUseCase(redisClient, ticketsRedisSetName, matchesRedisSetName),
 	})
 
 	router.HandleFunc("/matchmaking/tickets", ticketsAPI.CreateMatchmakingTicket).Methods("POST")
@@ -40,6 +41,7 @@ func main() {
 			MinCountPerMatch:    2,
 			MaxCountPerMatch:    4,
 			TicketsRedisSetName: ticketsRedisSetName,
+			MatchesRedisSetName: matchesRedisSetName,
 		}),
 	})
 
