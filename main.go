@@ -11,23 +11,25 @@ import (
 )
 
 func main() {
+	cfg, err := api.LoadConfig(".")
+	if err != nil {
+		panic(err)
+	}
+
 	redisClient := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		DB:       0,
-		Password: "eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81",
+		Addr:     cfg.RedisAddress,
+		DB:       cfg.RedisDB,
+		Password: cfg.RedisPassword,
 	})
 	router := mux.NewRouter()
-
-	ticketsRedisSetName := "tickets"
-	matchesRedisSetName := "matches"
 
 	// Tickets API
 	ticketsAPI := api.NewTicketsAPI(&struct {
 		*tickets.CreateTicketUseCase
 		*tickets.GetTicketUseCase
 	}{
-		CreateTicketUseCase: tickets.NewCreateTicketUseCase(redisClient, ticketsRedisSetName),
-		GetTicketUseCase:    tickets.NewGetTicketUseCase(redisClient, ticketsRedisSetName, matchesRedisSetName),
+		CreateTicketUseCase: tickets.NewCreateTicketUseCase(redisClient, cfg.RedisTicketsSetName),
+		GetTicketUseCase:    tickets.NewGetTicketUseCase(redisClient, cfg.RedisTicketsSetName, cfg.RedisMatchesSetName),
 	})
 
 	router.HandleFunc("/matchmaking/tickets", ticketsAPI.CreateMatchmakingTicket).Methods("POST")
@@ -38,10 +40,10 @@ func main() {
 		*matchmaking.MatchPlayersUseCase
 	}{
 		MatchPlayersUseCase: matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
-			MinCountPerMatch:    2,
-			MaxCountPerMatch:    4,
-			TicketsRedisSetName: ticketsRedisSetName,
-			MatchesRedisSetName: matchesRedisSetName,
+			MinCountPerMatch:    cfg.MatchmakerMinPlayersPerSession,
+			MaxCountPerMatch:    cfg.MatchmakerMaxPlayersPerSession,
+			TicketsRedisSetName: cfg.RedisTicketsSetName,
+			MatchesRedisSetName: cfg.RedisMatchesSetName,
 		}),
 	})
 
