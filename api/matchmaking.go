@@ -37,6 +37,7 @@ func (api *MatchmakingAPI) MatchPlayers(writer http.ResponseWriter, _ *http.Requ
 		return
 	}
 
+	AddHeaders(writer)
 	writer.WriteHeader(http.StatusOK)
 	writer.Write(marshalledSessions)
 	return

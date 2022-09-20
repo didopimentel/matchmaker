@@ -48,6 +48,5 @@ func main() {
 	})
 
 	router.HandleFunc("/matchmaking/match-players", matchmakingAPI.MatchPlayers).Methods("GET")
-
 	log.Fatal(http.ListenAndServe(":8000", router))
 }

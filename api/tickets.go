@@ -68,9 +68,16 @@ func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, reque
 		return
 	}
 
+	AddHeaders(writer)
 	writer.WriteHeader(http.StatusCreated)
 	writer.Write(marshalledTicket)
 	return
+}
+
+type GetMatchmakingTicketResponse struct {
+	GameSessionId string
+	Status        entities.MatchmakingStatus
+	Ticket        entities.MatchmakingTicket
 }
 
 func (api *TicketsAPI) GetMatchmakingTicket(writer http.ResponseWriter, request *http.Request) {
@@ -89,11 +96,18 @@ func (api *TicketsAPI) GetMatchmakingTicket(writer http.ResponseWriter, request 
 		return
 	}
 
-	ticketBytes, err := json.Marshal(output.Ticket)
+	response := GetMatchmakingTicketResponse{
+		GameSessionId: output.GameSessionId,
+		Status:        output.Status,
+		Ticket:        output.Ticket,
+	}
+	ticketBytes, err := json.Marshal(response)
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	AddHeaders(writer)
 
 	_, err = writer.Write(ticketBytes)
 	if err != nil {
