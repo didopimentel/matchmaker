@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/didopimentel/matchmaker/domain/matchmaking"
+	"github.com/didopimentel/matchmaker/domain/tickets"
 	"github.com/go-redis/redis/v9"
 	"github.com/jasonlvhit/gocron"
 	"log"
@@ -20,16 +20,13 @@ func main() {
 		Password: cfg.RedisPassword,
 	})
 
-	matchmakingUseCase := matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
-		MinCountPerMatch:    cfg.MatchmakerMinPlayersPerSession,
-		MaxCountPerMatch:    cfg.MatchmakerMaxPlayersPerSession,
+	removeExpiredTicketsUseCase := tickets.NewRemoveExpiredTicketsUseCase(redisClient, tickets.RemoveExpiredTicketsUseCaseConfig{
 		TicketsRedisSetName: cfg.RedisTicketsSetName,
-		MatchesRedisSetName: cfg.RedisMatchesSetName,
-		Timeout:             cfg.MatchmakerTimeout,
+		TimeBeforeToRemove:  cfg.TicketsTimeBeforeToRemove,
 		CountPerIteration:   cfg.RedisCountPerIteration,
 	})
 
-	err = gocron.Every(cfg.WorkerTimeScheduleInSeconds).Seconds().Do(matchmakingUseCase.MatchPlayers, context.Background())
+	err = gocron.Every(20).Seconds().Do(removeExpiredTicketsUseCase.RemoveExpiredTickets, context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}

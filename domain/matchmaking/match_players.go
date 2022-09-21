@@ -25,6 +25,7 @@ type MatchPlayerUseCaseConfig struct {
 	TicketsRedisSetName string
 	MatchesRedisSetName string
 	Timeout             time.Duration
+	CountPerIteration   int64
 }
 type MatchPlayersUseCase struct {
 	redisGateway MatchPlayersUseCaseRedisGateway
@@ -53,8 +54,9 @@ type PlayerSession struct {
 // needed for a perfect match. After that, if no match is found, sets the ticket as expired,
 // so it can no longer match with other players.
 func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOutput, error) {
-	result := m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", 10)
+	result := m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", m.cfg.CountPerIteration)
 
+	log.Println("Matching Players...")
 	var matchedSessions []PlayerSession
 	alreadyMatchedPlayers := map[string]bool{}
 	for {
@@ -187,7 +189,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 
 		}
 
-		result = m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", 10)
+		result = m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", m.cfg.CountPerIteration)
 		// Finished iterating through matchmaking tickets
 		if cursor == 0 {
 			break

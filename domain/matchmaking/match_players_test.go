@@ -132,6 +132,8 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			MaxCountPerMatch:    2,
 			TicketsRedisSetName: ticketsRedisSetName,
 			MatchesRedisSetName: matchesRedisSetName,
+			Timeout:             time.Minute,
+			CountPerIteration:   10,
 		})
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
@@ -252,6 +254,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			TicketsRedisSetName: "tickets",
 			MatchesRedisSetName: "matches",
 			Timeout:             time.Minute,
+			CountPerIteration:   10,
 		})
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
@@ -351,6 +354,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			TicketsRedisSetName: "tickets",
 			MatchesRedisSetName: "matches",
 			Timeout:             time.Minute,
+			CountPerIteration:   10,
 		})
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
@@ -467,6 +471,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			TicketsRedisSetName: "tickets",
 			MatchesRedisSetName: "matches",
 			Timeout:             time.Minute,
+			CountPerIteration:   10,
 		})
 		_, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
@@ -513,6 +518,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			TicketsRedisSetName: "tickets",
 			MatchesRedisSetName: "matches",
 			Timeout:             time.Second * 3,
+			CountPerIteration:   10,
 		})
 
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
@@ -587,6 +593,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			TicketsRedisSetName: "tickets",
 			MatchesRedisSetName: "matches",
 			Timeout:             time.Second * 3,
+			CountPerIteration:   10,
 		})
 
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
