@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cfg, err := LoadConfig(".")
+	cfg, err := LoadConfig("./app/matchmaking_worker")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -25,9 +25,10 @@ func main() {
 		MaxCountPerMatch:    cfg.MatchmakerMaxPlayersPerSession,
 		TicketsRedisSetName: cfg.RedisTicketsSetName,
 		MatchesRedisSetName: cfg.RedisMatchesSetName,
+		Timeout:             cfg.MatchmakerTimeout,
 	})
 
-	err = gocron.Every(10).Seconds().Do(matchmakingUseCase.MatchPlayers, context.Background())
+	err = gocron.Every(20).Seconds().Do(matchmakingUseCase.MatchPlayers, context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}

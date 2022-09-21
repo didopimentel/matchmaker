@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	cfg, err := LoadConfig(".")
+	cfg, err := LoadConfig("./app/api")
 	if err != nil {
 		panic(err)
 	}
@@ -21,6 +21,7 @@ func main() {
 		DB:       cfg.RedisDB,
 		Password: cfg.RedisPassword,
 	})
+
 	router := mux.NewRouter()
 
 	// Tickets API

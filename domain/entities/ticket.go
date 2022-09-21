@@ -11,11 +11,14 @@ const (
 )
 
 type MatchmakingTicket struct {
-	ID         string
-	PlayerID   string
-	League     int64
-	Table      int64
-	Parameters []MatchmakingTicketParameter
+	ID            string
+	PlayerId      string
+	League        int64
+	Table         int64
+	CreatedAt     int64
+	Status        MatchmakingStatus
+	GameSessionId string
+	Parameters    []MatchmakingTicketParameter
 }
 
 func (i MatchmakingTicket) MarshalBinary() (data []byte, err error) {

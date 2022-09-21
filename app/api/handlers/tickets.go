@@ -25,10 +25,10 @@ func NewTicketsAPI(uc TicketsAPIUseCases) *TicketsAPI {
 }
 
 type CreateMatchmakingTicketRequest struct {
-	Parameters []entities.MatchmakingTicketParameter `json:"parameters"`
-	PlayerID   string                                `json:"player_id"`
-	League     int64                                 `json:"league"`
-	Table      int64                                 `json:"table"`
+	Parameters []entities.MatchmakingTicketParameter
+	PlayerId   string
+	League     int64
+	Table      int64
 }
 
 func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, request *http.Request) {
@@ -50,7 +50,7 @@ func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, reque
 	}
 
 	output, err := api.uc.CreateTicket(ctx, tickets.CreateTicketInput{
-		PlayerID:   req.PlayerID,
+		PlayerId:   req.PlayerId,
 		League:     req.League,
 		Table:      req.Table,
 		Parameters: req.Parameters,
@@ -75,9 +75,7 @@ func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, reque
 }
 
 type GetMatchmakingTicketResponse struct {
-	GameSessionId string
-	Status        entities.MatchmakingStatus
-	Ticket        entities.MatchmakingTicket
+	Ticket entities.MatchmakingTicket
 }
 
 func (api *TicketsAPI) GetMatchmakingTicket(writer http.ResponseWriter, request *http.Request) {
@@ -90,16 +88,14 @@ func (api *TicketsAPI) GetMatchmakingTicket(writer http.ResponseWriter, request 
 		return
 	}
 
-	output, err := api.uc.GetTicket(ctx, tickets.GetTicketInput{PlayerID: playerId})
+	output, err := api.uc.GetTicket(ctx, tickets.GetTicketInput{PlayerId: playerId})
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	response := GetMatchmakingTicketResponse{
-		GameSessionId: output.GameSessionId,
-		Status:        output.Status,
-		Ticket:        output.Ticket,
+		Ticket: output.Ticket,
 	}
 	ticketBytes, err := json.Marshal(response)
 	if err != nil {

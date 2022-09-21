@@ -8,6 +8,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"log"
+	"time"
 )
 
 type MatchPlayersUseCaseRedisGateway interface {
@@ -23,6 +24,7 @@ type MatchPlayerUseCaseConfig struct {
 	MaxCountPerMatch    int32
 	TicketsRedisSetName string
 	MatchesRedisSetName string
+	Timeout             time.Duration
 }
 type MatchPlayersUseCase struct {
 	redisGateway MatchPlayersUseCaseRedisGateway
@@ -43,7 +45,7 @@ type MatchPlayersOutput struct {
 }
 type PlayerSession struct {
 	SessionID string
-	PlayerIDs []string
+	PlayerIds []string
 }
 
 func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOutput, error) {
@@ -70,9 +72,22 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 				return MatchPlayersOutput{}, err
 			}
 
+			// TODO: should return an error
+			if playerTicket.Status == entities.MatchmakingStatus_Expired {
+				continue
+			}
+
+			hasExpired := time.Now().Unix() > playerTicket.CreatedAt+int64(m.cfg.Timeout.Seconds())
+
+			maxCountForThisPlayer := m.cfg.MaxCountPerMatch
+			// when has reached the time limit, we decrease the max amount for a perfect by 1
+			if hasExpired && maxCountForThisPlayer-1 >= m.cfg.MinCountPerMatch {
+				maxCountForThisPlayer--
+			}
+
 			var eligibleOpponents []string
 			// Append the player
-			eligibleOpponents = append(eligibleOpponents, playerTicket.PlayerID)
+			eligibleOpponents = append(eligibleOpponents, playerTicket.PlayerId)
 			eligibleOpponentsCountMap := map[string]int{}
 			for _, parameter := range playerTicket.Parameters {
 				var result *redis.StringSliceCmd
@@ -110,7 +125,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 				}
 
 				for _, opponent := range foundOpponents {
-					if opponent == playerTicket.PlayerID {
+					if opponent == playerTicket.PlayerId {
 						continue
 					}
 					c, ok := eligibleOpponentsCountMap[opponent]
@@ -132,23 +147,37 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 			}
 
 			// Found a match!
-			if int32(len(eligibleOpponents)) >= m.cfg.MinCountPerMatch {
+			if int32(len(eligibleOpponents)) == maxCountForThisPlayer {
 				// this could be an id or the address of a game server match
 				gameSessionId := uuid.New().String()
-				matchedSessions = append(matchedSessions, PlayerSession{PlayerIDs: eligibleOpponents, SessionID: gameSessionId})
+				matchedSessions = append(matchedSessions, PlayerSession{PlayerIds: eligibleOpponents, SessionID: gameSessionId})
 				for _, opponent := range eligibleOpponents {
 					for _, parameter := range playerTicket.Parameters {
-						if m.redisGateway.ZRem(ctx, string(parameter.Type), opponent).Err() != nil {
+						if err = m.redisGateway.ZRem(ctx, string(parameter.Type), opponent).Err(); err != nil {
 							return MatchPlayersOutput{}, err
 						}
 					}
-					if m.redisGateway.HDel(ctx, m.cfg.TicketsRedisSetName, opponent).Err() != nil {
+					if err = m.redisGateway.HDel(ctx, m.cfg.TicketsRedisSetName, opponent).Err(); err != nil {
 						return MatchPlayersOutput{}, err
 					}
 					alreadyMatchedPlayers[opponent] = true
 
-					// sets the game session id to each player matched
-					m.redisGateway.HSet(ctx, m.cfg.MatchesRedisSetName, opponent, gameSessionId)
+					// creates a registry in Matches for each opponent
+					playerTicket.Status = entities.MatchmakingStatus_Found
+					playerTicket.GameSessionId = gameSessionId
+					m.redisGateway.HSet(ctx, m.cfg.MatchesRedisSetName, opponent, playerTicket)
+				}
+				// sets the ticket as expired and removes from parameters sets, so it is not tried again
+			} else if hasExpired {
+				playerTicket.Status = entities.MatchmakingStatus_Expired
+				if err = m.redisGateway.HSet(ctx, m.cfg.TicketsRedisSetName, playerTicket.PlayerId, playerTicket).Err(); err != nil {
+					return MatchPlayersOutput{}, err
+				}
+
+				for _, parameter := range playerTicket.Parameters {
+					if err = m.redisGateway.ZRem(ctx, string(parameter.Type), playerTicket.PlayerId).Err(); err != nil {
+						return MatchPlayersOutput{}, err
+					}
 				}
 			}
 

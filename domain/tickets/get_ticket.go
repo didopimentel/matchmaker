@@ -24,40 +24,38 @@ func NewGetTicketUseCase(redisGateway GetTicketUseCaseRedisGateway, ticketsRedis
 }
 
 type GetTicketInput struct {
-	PlayerID string
+	PlayerId string
 }
 type GetTicketOutput struct {
-	Status        entities.MatchmakingStatus
-	GameSessionId string
-	Ticket        entities.MatchmakingTicket
+	Ticket entities.MatchmakingTicket
 }
 
 func (c *GetTicketUseCase) GetTicket(ctx context.Context, input GetTicketInput) (GetTicketOutput, error) {
-	result := c.redisGateway.HGet(ctx, c.matchesRedisSetName, input.PlayerID)
-	var gameSessionId string
+	result := c.redisGateway.HGet(ctx, c.matchesRedisSetName, input.PlayerId)
 	if result.Err() != nil {
 		if !errors.Is(result.Err(), redis.Nil) {
 			log.Print(result.Err())
 			return GetTicketOutput{}, result.Err()
 		}
 	} else {
-		var err error
-		gameSessionId, err = result.Result()
+		// The match was already found for the player
+		var ticketBytes []byte
+		err := result.Scan(&ticketBytes)
 		if err != nil {
 			return GetTicketOutput{}, err
 		}
-	}
 
-	if gameSessionId != "" {
+		var ticket entities.MatchmakingTicket
+		err = json.Unmarshal(ticketBytes, &ticket)
+		if err != nil {
+			return GetTicketOutput{}, err
+		}
 		return GetTicketOutput{
-			Status:        entities.MatchmakingStatus_Found,
-			GameSessionId: gameSessionId,
-			Ticket:        entities.MatchmakingTicket{},
+			Ticket: ticket,
 		}, nil
 	}
 
-	// TODO: what to do when expired?
-	result = c.redisGateway.HGet(ctx, c.ticketsRedisSetName, input.PlayerID)
+	result = c.redisGateway.HGet(ctx, c.ticketsRedisSetName, input.PlayerId)
 	if result.Err() != nil {
 		log.Print(result.Err())
 		return GetTicketOutput{}, result.Err()
@@ -76,7 +74,6 @@ func (c *GetTicketUseCase) GetTicket(ctx context.Context, input GetTicketInput) 
 	}
 
 	return GetTicketOutput{
-		Status: entities.MatchmakingStatus_Pending,
 		Ticket: ticket,
 	}, nil
 }

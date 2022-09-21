@@ -6,6 +6,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	"github.com/google/uuid"
 	"log"
+	"time"
 )
 
 type CreateTicketUseCaseRedisGateway interface {
@@ -23,7 +24,7 @@ func NewCreateTicketUseCase(redisGateway CreateTicketUseCaseRedisGateway, ticket
 }
 
 type CreateTicketInput struct {
-	PlayerID   string
+	PlayerId   string
 	League     int64
 	Table      int64
 	Parameters []entities.MatchmakingTicketParameter
@@ -35,14 +36,16 @@ type CreateTicketOutput struct {
 func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTicketInput) (CreateTicketOutput, error) {
 	ticket := entities.MatchmakingTicket{
 		ID:         uuid.NewString(),
-		PlayerID:   input.PlayerID,
+		PlayerId:   input.PlayerId,
 		League:     input.League,
 		Table:      input.Table,
 		Parameters: input.Parameters,
+		Status:     entities.MatchmakingStatus_Pending,
+		CreatedAt:  time.Now().Unix(),
 	}
 
 	// TODO: parameterize ttl
-	set := c.redisGateway.HSet(ctx, c.ticketsRedisSetName, input.PlayerID, ticket)
+	set := c.redisGateway.HSet(ctx, c.ticketsRedisSetName, input.PlayerId, ticket)
 	if set.Err() != nil {
 		log.Print(set.Err())
 		return CreateTicketOutput{}, set.Err()
@@ -50,14 +53,14 @@ func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTick
 
 	cmd := c.redisGateway.ZAdd(ctx, string(entities.MatchmakingTicketParameterType_Table), redis.Z{
 		Score:  float64(input.Table),
-		Member: input.PlayerID,
+		Member: input.PlayerId,
 	})
 	if cmd.Err() != nil {
 		log.Print(cmd.Err())
 	}
 	cmd = c.redisGateway.ZAdd(ctx, string(entities.MatchmakingTicketParameterType_League), redis.Z{
 		Score:  float64(input.League),
-		Member: input.PlayerID,
+		Member: input.PlayerId,
 	})
 	if cmd.Err() != nil {
 		log.Print(cmd.Err())

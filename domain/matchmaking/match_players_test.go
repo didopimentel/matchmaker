@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"time"
 )
 
 func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
@@ -30,7 +31,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   5,
 				Table:    6,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -47,7 +48,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   7,
 				Table:    8,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -64,7 +65,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   7,
 				Table:    8,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -81,7 +82,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   10,
 				Table:    11,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -98,7 +99,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   15,
 				Table:    16,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -121,10 +122,10 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		getTicketOutput, err := getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerID: createTicketInputs[1].PlayerID})
+		getTicketOutput, err := getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerId: createTicketInputs[1].PlayerId})
 		require.NoError(t, err)
 
-		require.Equal(t, entities.MatchmakingStatus_Pending, getTicketOutput.Status)
+		require.Equal(t, entities.MatchmakingStatus_Pending, getTicketOutput.Ticket.Status)
 
 		matchPlayersUseCase := matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
 			MinCountPerMatch:    2,
@@ -138,26 +139,26 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 		require.Len(t, output.CreatedSessions, 1)
 
 		// Should match 2nd and 3rd player
-		for _, p := range output.CreatedSessions[0].PlayerIDs {
-			if p != createTicketInputs[1].PlayerID && p != createTicketInputs[2].PlayerID {
+		for _, p := range output.CreatedSessions[0].PlayerIds {
+			if p != createTicketInputs[1].PlayerId && p != createTicketInputs[2].PlayerId {
 				t.Error("wrong players matched")
 			}
 		}
 
-		getTicketOutput, err = getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerID: output.CreatedSessions[0].PlayerIDs[0]})
+		getTicketOutput, err = getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerId: output.CreatedSessions[0].PlayerIds[0]})
 		require.NoError(t, err)
 
-		gameSessionId := getTicketOutput.GameSessionId
-		require.Equal(t, entities.MatchmakingStatus_Found, getTicketOutput.Status)
-		require.NotEqual(t, "", getTicketOutput.GameSessionId)
+		gameSessionId := getTicketOutput.Ticket.GameSessionId
+		require.Equal(t, entities.MatchmakingStatus_Found, getTicketOutput.Ticket.Status)
+		require.NotEqual(t, "", getTicketOutput.Ticket.GameSessionId)
 
-		getTicketOutput, err = getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerID: output.CreatedSessions[0].PlayerIDs[1]})
+		getTicketOutput, err = getTicketsUseCase.GetTicket(ctx, tickets.GetTicketInput{PlayerId: output.CreatedSessions[0].PlayerIds[1]})
 		require.NoError(t, err)
 
-		require.Equal(t, entities.MatchmakingStatus_Found, getTicketOutput.Status)
-		require.NotEqual(t, "", getTicketOutput.GameSessionId)
+		require.Equal(t, entities.MatchmakingStatus_Found, getTicketOutput.Ticket.Status)
+		require.NotEqual(t, "", getTicketOutput.Ticket.GameSessionId)
 
-		require.Equal(t, gameSessionId, getTicketOutput.GameSessionId)
+		require.Equal(t, gameSessionId, getTicketOutput.Ticket.GameSessionId)
 
 		cmd = redisClient.FlushAll(ctx)
 		require.NoError(t, cmd.Err())
@@ -171,7 +172,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   5,
 				Table:    6,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -188,7 +189,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   7,
 				Table:    8,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -205,7 +206,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   10,
 				Table:    11,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -222,7 +223,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   15,
 				Table:    16,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -249,13 +250,15 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			MinCountPerMatch:    2,
 			MaxCountPerMatch:    4,
 			TicketsRedisSetName: "tickets",
+			MatchesRedisSetName: "matches",
+			Timeout:             time.Minute,
 		})
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
 
 		require.Len(t, output.CreatedSessions, 1)
 
-		require.Len(t, output.CreatedSessions[0].PlayerIDs, 4)
+		require.Len(t, output.CreatedSessions[0].PlayerIds, 4)
 		cmd = redisClient.FlushAll(ctx)
 		require.NoError(t, cmd.Err())
 	})
@@ -268,7 +271,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   5,
 				Table:    6,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -285,7 +288,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   7,
 				Table:    8,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -302,7 +305,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   10,
 				Table:    11,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -319,7 +322,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   15,
 				Table:    16,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -344,15 +347,17 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		matchPlayersUseCase := matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
 			MinCountPerMatch:    2,
-			MaxCountPerMatch:    4,
+			MaxCountPerMatch:    3,
 			TicketsRedisSetName: "tickets",
+			MatchesRedisSetName: "matches",
+			Timeout:             time.Minute,
 		})
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
 
 		require.Len(t, output.CreatedSessions, 1)
 
-		require.Len(t, output.CreatedSessions[0].PlayerIDs, 3)
+		require.Len(t, output.CreatedSessions[0].PlayerIds, 3)
 		cmd = redisClient.FlushAll(ctx)
 		require.NoError(t, cmd.Err())
 	})
@@ -365,7 +370,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   5,
 				Table:    6,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -382,7 +387,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   7,
 				Table:    8,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -399,7 +404,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   7,
 				Table:    8,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -416,7 +421,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   10,
 				Table:    11,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -433,7 +438,7 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 				},
 			},
 			{
-				PlayerID: uuid.NewString(),
+				PlayerId: uuid.NewString(),
 				League:   15,
 				Table:    16,
 				Parameters: []entities.MatchmakingTicketParameter{
@@ -460,6 +465,8 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			MinCountPerMatch:    2,
 			MaxCountPerMatch:    2,
 			TicketsRedisSetName: "tickets",
+			MatchesRedisSetName: "matches",
+			Timeout:             time.Minute,
 		})
 		_, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
@@ -467,6 +474,159 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 		output, err := matchPlayersUseCase.MatchPlayers(ctx)
 		require.NoError(t, err)
 
+		require.Len(t, output.CreatedSessions, 0)
+
+		cmd = redisClient.FlushAll(ctx)
+		require.NoError(t, cmd.Err())
+	})
+
+	t.Run("should find an imperfect match in first try after expiring", func(t *testing.T) {
+		cmd := redisClient.FlushAll(ctx)
+		require.NoError(t, cmd.Err())
+
+		ticketsUseCase := tickets.NewCreateTicketUseCase(redisClient, "tickets")
+
+		createTicketInput := tickets.CreateTicketInput{
+			PlayerId: uuid.NewString(),
+			League:   5,
+			Table:    6,
+			Parameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType_League,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    5,
+				},
+				{
+					Type:     entities.MatchmakingTicketParameterType_Table,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    6,
+				},
+			},
+		}
+
+		_, err := ticketsUseCase.CreateTicket(ctx, createTicketInput)
+		require.NoError(t, err)
+
+		matchPlayersUseCase := matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
+			MinCountPerMatch:    2,
+			MaxCountPerMatch:    3,
+			TicketsRedisSetName: "tickets",
+			MatchesRedisSetName: "matches",
+			Timeout:             time.Second * 3,
+		})
+
+		output, err := matchPlayersUseCase.MatchPlayers(ctx)
+		require.NoError(t, err)
+		require.Len(t, output.CreatedSessions, 0)
+
+		// wait 5 seconds for expiration
+		time.Sleep(time.Second * 5)
+
+		createAnotherTicketInput := tickets.CreateTicketInput{
+			PlayerId: uuid.NewString(),
+			League:   5,
+			Table:    6,
+			Parameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType_League,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    5,
+				},
+				{
+					Type:     entities.MatchmakingTicketParameterType_Table,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    6,
+				},
+			},
+		}
+
+		// create another ticket that should match the requirements
+		_, err = ticketsUseCase.CreateTicket(ctx, createAnotherTicketInput)
+		require.NoError(t, err)
+
+		output, err = matchPlayersUseCase.MatchPlayers(ctx)
+		require.NoError(t, err)
+
+		// TODO: check error
+		require.Len(t, output.CreatedSessions, 1)
+
+		cmd = redisClient.FlushAll(ctx)
+		require.NoError(t, cmd.Err())
+	})
+
+	t.Run("should not match expired tickets", func(t *testing.T) {
+		cmd := redisClient.FlushAll(ctx)
+		require.NoError(t, cmd.Err())
+
+		ticketsUseCase := tickets.NewCreateTicketUseCase(redisClient, "tickets")
+
+		createTicketInput := tickets.CreateTicketInput{
+			PlayerId: uuid.NewString(),
+			League:   5,
+			Table:    6,
+			Parameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType_League,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    5,
+				},
+				{
+					Type:     entities.MatchmakingTicketParameterType_Table,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    6,
+				},
+			},
+		}
+
+		_, err := ticketsUseCase.CreateTicket(ctx, createTicketInput)
+		require.NoError(t, err)
+
+		matchPlayersUseCase := matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
+			MinCountPerMatch:    2,
+			MaxCountPerMatch:    2,
+			TicketsRedisSetName: "tickets",
+			MatchesRedisSetName: "matches",
+			Timeout:             time.Second * 3,
+		})
+
+		output, err := matchPlayersUseCase.MatchPlayers(ctx)
+		require.NoError(t, err)
+		require.Len(t, output.CreatedSessions, 0)
+
+		// wait 5 seconds for expiration
+		time.Sleep(time.Second * 5)
+
+		// run again since the first run after expiration tries to find an imperfect match
+		output, err = matchPlayersUseCase.MatchPlayers(ctx)
+		require.NoError(t, err)
+		require.Len(t, output.CreatedSessions, 0)
+
+		createAnotherTicketInput := tickets.CreateTicketInput{
+			PlayerId: uuid.NewString(),
+			League:   5,
+			Table:    6,
+			Parameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType_League,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    5,
+				},
+				{
+					Type:     entities.MatchmakingTicketParameterType_Table,
+					Operator: entities.MatchmakingTicketParameterOperator_Equal,
+					Value:    6,
+				},
+			},
+		}
+
+		// create another ticket that should match the requirements
+		_, err = ticketsUseCase.CreateTicket(ctx, createAnotherTicketInput)
+		require.NoError(t, err)
+
+		output, err = matchPlayersUseCase.MatchPlayers(ctx)
+		require.NoError(t, err)
+
+		// TODO: check error
 		require.Len(t, output.CreatedSessions, 0)
 
 		cmd = redisClient.FlushAll(ctx)

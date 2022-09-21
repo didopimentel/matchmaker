@@ -1,15 +1,19 @@
 package main
 
-import "github.com/spf13/viper"
+import (
+	"github.com/spf13/viper"
+	"time"
+)
 
 type Config struct {
-	RedisAddress                   string `mapstructure:"REDIS_ADDRESS"`
-	RedisPassword                  string `mapstructure:"REDIS_PASSWORD"`
-	RedisDB                        int    `mapstructure:"REDIS_DB"`
-	RedisTicketsSetName            string `mapstructure:"REDIS_TICKETS_SET_NAME"`
-	RedisMatchesSetName            string `mapstructure:"REDIS_MATCHES_SET_NAME"`
-	MatchmakerMinPlayersPerSession int32  `mapstructure:"MATCHMAKER_MIN_PLAYERS_PER_SESSION"`
-	MatchmakerMaxPlayersPerSession int32  `mapstructure:"MATCHMAKER_MAX_PLAYERS_PER_SESSION"`
+	RedisAddress                   string        `mapstructure:"REDIS_ADDRESS"`
+	RedisPassword                  string        `mapstructure:"REDIS_PASSWORD"`
+	RedisDB                        int           `mapstructure:"REDIS_DB"`
+	RedisTicketsSetName            string        `mapstructure:"REDIS_TICKETS_SET_NAME"`
+	RedisMatchesSetName            string        `mapstructure:"REDIS_MATCHES_SET_NAME"`
+	MatchmakerMinPlayersPerSession int32         `mapstructure:"MATCHMAKER_MIN_PLAYERS_PER_SESSION"`
+	MatchmakerMaxPlayersPerSession int32         `mapstructure:"MATCHMAKER_MAX_PLAYERS_PER_SESSION"`
+	MatchmakerTimeout              time.Duration `mapstructure:"MATCHMAKER_TIMEOUT"`
 }
 
 // LoadConfig reads configuration from file or environment variables.
