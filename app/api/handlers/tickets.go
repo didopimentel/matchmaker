@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/didopimentel/matchmaker/domain/entities"
 	"github.com/didopimentel/matchmaker/domain/tickets"
 	"github.com/gorilla/mux"
@@ -90,6 +91,18 @@ func (api *TicketsAPI) GetMatchmakingTicket(writer http.ResponseWriter, request 
 
 	output, err := api.uc.GetTicket(ctx, tickets.GetTicketInput{PlayerId: playerId})
 	if err != nil {
+		if errors.Is(err, tickets.TicketNotFoundErr) {
+			writer.WriteHeader(http.StatusNotFound)
+			writer.Write([]byte(err.Error()))
+			return
+		}
+
+		if errors.Is(err, tickets.InvalidTicketParametersErr) {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte(err.Error()))
+			return
+		}
+
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}

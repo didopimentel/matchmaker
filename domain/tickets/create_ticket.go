@@ -34,6 +34,10 @@ type CreateTicketOutput struct {
 }
 
 func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTicketInput) (CreateTicketOutput, error) {
+	if len(input.Parameters) == 0 {
+		return CreateTicketOutput{}, InvalidTicketParametersErr
+	}
+
 	ticket := entities.MatchmakingTicket{
 		ID:         uuid.NewString(),
 		PlayerId:   input.PlayerId,
@@ -44,7 +48,6 @@ func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTick
 		CreatedAt:  time.Now().Unix(),
 	}
 
-	// TODO: parameterize ttl
 	set := c.redisGateway.HSet(ctx, c.ticketsRedisSetName, input.PlayerId, ticket)
 	if set.Err() != nil {
 		log.Print(set.Err())

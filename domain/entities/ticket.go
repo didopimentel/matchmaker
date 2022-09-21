@@ -43,7 +43,7 @@ const (
 )
 
 type MatchmakingTicketParameter struct {
-	Type     MatchmakingTicketParameterType     `json:"type"`
-	Operator MatchmakingTicketParameterOperator `json:"operator"`
-	Value    int64                              `json:"value"`
+	Type     MatchmakingTicketParameterType
+	Operator MatchmakingTicketParameterOperator
+	Value    int64
 }

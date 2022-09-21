@@ -57,6 +57,10 @@ func (c *GetTicketUseCase) GetTicket(ctx context.Context, input GetTicketInput) 
 
 	result = c.redisGateway.HGet(ctx, c.ticketsRedisSetName, input.PlayerId)
 	if result.Err() != nil {
+		if errors.Is(result.Err(), redis.Nil) {
+			return GetTicketOutput{}, TicketNotFoundErr
+		}
+
 		log.Print(result.Err())
 		return GetTicketOutput{}, result.Err()
 	}
