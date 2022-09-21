@@ -48,6 +48,10 @@ type PlayerSession struct {
 	PlayerIds []string
 }
 
+// MatchPlayers tries to match all tickets opened by players.
+// If a player's ticket exceeds the expiration time, reduces by one the amount of players
+// needed for a perfect match. After that, if no match is found, sets the ticket as expired,
+// so it can no longer match with other players.
 func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOutput, error) {
 	result := m.redisGateway.HScan(ctx, m.cfg.TicketsRedisSetName, 0, "", 10)
 

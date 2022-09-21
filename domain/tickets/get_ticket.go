@@ -30,6 +30,9 @@ type GetTicketOutput struct {
 	Ticket entities.MatchmakingTicket
 }
 
+// GetTicket retrieves the ticket status for a given player.
+// If the ticket was already matched, ticket status is "found" and the GameSessionId will contain
+// the information needed to connect to the game server
 func (c *GetTicketUseCase) GetTicket(ctx context.Context, input GetTicketInput) (GetTicketOutput, error) {
 	result := c.redisGateway.HGet(ctx, c.matchesRedisSetName, input.PlayerId)
 	if result.Err() != nil {
@@ -55,6 +58,7 @@ func (c *GetTicketUseCase) GetTicket(ctx context.Context, input GetTicketInput) 
 		}, nil
 	}
 
+	// If no match has been found, try to get the current status for the ticket
 	result = c.redisGateway.HGet(ctx, c.ticketsRedisSetName, input.PlayerId)
 	if result.Err() != nil {
 		if errors.Is(result.Err(), redis.Nil) {

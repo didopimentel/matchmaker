@@ -33,6 +33,8 @@ type CreateTicketOutput struct {
 	Ticket entities.MatchmakingTicket
 }
 
+// CreateTicket creates a matchmaking ticket for a given player with its current League and Table state
+// as well as the parameter requirements to match with other players
 func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTicketInput) (CreateTicketOutput, error) {
 	if len(input.Parameters) == 0 {
 		return CreateTicketOutput{}, InvalidTicketParametersErr
