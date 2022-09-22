@@ -3,6 +3,7 @@ package tickets
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/didopimentel/matchmaker/domain/entities"
 	"github.com/go-redis/redis/v9"
 	"time"
@@ -33,11 +34,13 @@ type RemoveExpiredTicketsOutput struct {
 
 // RemoveExpiredTickets removes expired tickets that were created before a certain time.
 func (c *RemoveExpiredTicketsUseCase) RemoveExpiredTickets(ctx context.Context) (RemoveExpiredTicketsOutput, error) {
-	result := c.redisGateway.HScan(ctx, c.cfg.TicketsRedisSetName, 0, "", c.cfg.CountPerIteration)
-
+	var cursor uint64
+	var tickets []string
+	var err error
 	var count int64
 	for {
-		tickets, cursor, err := result.Result()
+		result := c.redisGateway.HScan(ctx, c.cfg.TicketsRedisSetName, cursor, "", c.cfg.CountPerIteration)
+		tickets, cursor, err = result.Result()
 		if err != nil {
 			return RemoveExpiredTicketsOutput{}, err
 		}
@@ -50,7 +53,7 @@ func (c *RemoveExpiredTicketsUseCase) RemoveExpiredTickets(ctx context.Context) 
 			}
 
 			// Removes if the ticket is expired and the time has passed the threshold
-			if playerTicket.Status == entities.MatchmakingStatus_Expired && playerTicket.CreatedAt > time.Now().Add(-c.cfg.TimeBeforeToRemove).Unix() {
+			if playerTicket.Status == entities.MatchmakingStatus_Expired && playerTicket.CreatedAt < time.Now().Add(-c.cfg.TimeBeforeToRemove).Unix() {
 				if err = c.redisGateway.HDel(ctx, c.cfg.TicketsRedisSetName, playerTicket.PlayerId).Err(); err != nil {
 					return RemoveExpiredTicketsOutput{}, err
 				}
@@ -58,13 +61,13 @@ func (c *RemoveExpiredTicketsUseCase) RemoveExpiredTickets(ctx context.Context) 
 			}
 		}
 
-		result = c.redisGateway.HScan(ctx, c.cfg.TicketsRedisSetName, 0, "", c.cfg.CountPerIteration)
 		// Finished iterating through matchmaking tickets
 		if cursor == 0 {
 			break
 		}
 	}
 
+	fmt.Println("Tickets Cleaned: ", count)
 	return RemoveExpiredTicketsOutput{
 		ExpiredTicketsCount: count,
 	}, nil

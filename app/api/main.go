@@ -36,6 +36,8 @@ func main() {
 			MaxCountPerMatch:    cfg.MatchmakerMaxPlayersPerSession,
 			TicketsRedisSetName: cfg.RedisTicketsSetName,
 			MatchesRedisSetName: cfg.RedisMatchesSetName,
+			Timeout:             cfg.MatchmakerTimeout,
+			CountPerIteration:   cfg.RedisCountPerIteration,
 		}),
 	}
 

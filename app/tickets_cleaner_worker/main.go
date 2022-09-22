@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	cfg, err := LoadConfig("./app/matchmaking_worker")
+	cfg, err := LoadConfig("./app/tickets_cleaner_worker")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func main() {
 		CountPerIteration:   cfg.RedisCountPerIteration,
 	})
 
-	err = gocron.Every(20).Seconds().Do(removeExpiredTicketsUseCase.RemoveExpiredTickets, context.Background())
+	err = gocron.Every(cfg.WorkerTimeScheduleInSeconds).Seconds().Do(removeExpiredTicketsUseCase.RemoveExpiredTickets, context.Background())
 	if err != nil {
 		log.Fatal(err)
 	}
