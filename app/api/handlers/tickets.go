@@ -12,6 +12,8 @@ import (
 	"net/http"
 )
 
+//go:generate moq -stub -pkg mocks -out mocks/tickets_api_use_cases.go . TicketsAPIUseCases
+
 type TicketsAPIUseCases interface {
 	CreateTicket(ctx context.Context, input tickets.CreateTicketInput) (tickets.CreateTicketOutput, error)
 	GetTicket(ctx context.Context, input tickets.GetTicketInput) (tickets.GetTicketOutput, error)
@@ -57,6 +59,12 @@ func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, reque
 		Parameters: req.Parameters,
 	})
 	if err != nil {
+		if errors.Is(err, tickets.InvalidTicketParametersErr) {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte(err.Error()))
+			return
+		}
+
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
@@ -97,12 +105,7 @@ func (api *TicketsAPI) GetMatchmakingTicket(writer http.ResponseWriter, request 
 			return
 		}
 
-		if errors.Is(err, tickets.InvalidTicketParametersErr) {
-			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte(err.Error()))
-			return
-		}
-
+		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return
 	}

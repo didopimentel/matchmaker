@@ -1,5 +1,13 @@
 REDIS_ADDR ?= 'postgres://ps_user:ps_password@localhost:7002/backend?sslmode=disable'
 
+.PHONY: setup
+setup:
+	@echo "==> Setup: installing tools"
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.2
+	go install golang.org/x/tools/cmd/goimports@latest
+	go install github.com/matryer/moq@latest
+	go install github.com/rakyll/gotest@latest
+
 # Test
 .PHONY: test
 test:

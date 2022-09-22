@@ -5,7 +5,6 @@ import (
 	"github.com/didopimentel/matchmaker/domain/matchmaking"
 	"github.com/didopimentel/matchmaker/domain/tickets"
 	"github.com/go-redis/redis/v9"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 )
@@ -22,22 +21,14 @@ func main() {
 		Password: cfg.RedisPassword,
 	})
 
-	router := mux.NewRouter()
-
-	// Tickets API
-	ticketsAPI := handlers.NewTicketsAPI(&struct {
+	ticketsAPIUseCases := &struct {
 		*tickets.CreateTicketUseCase
 		*tickets.GetTicketUseCase
 	}{
 		CreateTicketUseCase: tickets.NewCreateTicketUseCase(redisClient, cfg.RedisTicketsSetName),
 		GetTicketUseCase:    tickets.NewGetTicketUseCase(redisClient, cfg.RedisTicketsSetName, cfg.RedisMatchesSetName),
-	})
-
-	router.HandleFunc("/matchmaking/tickets", ticketsAPI.CreateMatchmakingTicket).Methods("POST")
-	router.HandleFunc("/matchmaking/players/{id}/ticket", ticketsAPI.GetMatchmakingTicket).Methods("GET")
-
-	// Matchmaking API
-	matchmakingAPI := handlers.NewMatchmakingAPI(&struct {
+	}
+	matchmakingAPIUseCases := &struct {
 		*matchmaking.MatchPlayersUseCase
 	}{
 		MatchPlayersUseCase: matchmaking.NewMatchPlayersUseCase(redisClient, matchmaking.MatchPlayerUseCaseConfig{
@@ -46,8 +37,14 @@ func main() {
 			TicketsRedisSetName: cfg.RedisTicketsSetName,
 			MatchesRedisSetName: cfg.RedisMatchesSetName,
 		}),
-	})
+	}
 
-	router.HandleFunc("/matchmaking/match-players", matchmakingAPI.MatchPlayers).Methods("GET")
-	log.Fatal(http.ListenAndServe(":8000", router))
+	apiUseCases := handlers.UseCases{
+		TicketsAPIUseCases:     ticketsAPIUseCases,
+		MatchmakingAPIUseCases: matchmakingAPIUseCases,
+	}
+
+	server := handlers.NewServer(apiUseCases)
+
+	log.Fatal(http.ListenAndServe(":8000", server))
 }
