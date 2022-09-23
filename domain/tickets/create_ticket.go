@@ -23,11 +23,14 @@ func NewCreateTicketUseCase(redisGateway CreateTicketUseCaseRedisGateway, ticket
 	return &CreateTicketUseCase{redisGateway: redisGateway, ticketsRedisSetName: ticketsRedisSetName}
 }
 
+type CreateTicketInputPlayerParameters struct {
+	Type  entities.MatchmakingTicketParameterType
+	Value float64
+}
 type CreateTicketInput struct {
-	PlayerId   string
-	League     int64
-	Table      int64
-	Parameters []entities.MatchmakingTicketParameter
+	PlayerId         string
+	PlayerParameters []CreateTicketInputPlayerParameters
+	MatchParameters  []entities.MatchmakingTicketParameter
 }
 type CreateTicketOutput struct {
 	Ticket entities.MatchmakingTicket
@@ -36,18 +39,12 @@ type CreateTicketOutput struct {
 // CreateTicket creates a matchmaking ticket for a given player with its current League and Table state
 // as well as the parameter requirements to match with other players
 func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTicketInput) (CreateTicketOutput, error) {
-	if len(input.Parameters) == 0 {
-		return CreateTicketOutput{}, InvalidTicketParametersErr
-	}
-
 	ticket := entities.MatchmakingTicket{
-		ID:         uuid.NewString(),
-		PlayerId:   input.PlayerId,
-		League:     input.League,
-		Table:      input.Table,
-		Parameters: input.Parameters,
-		Status:     entities.MatchmakingStatus_Pending,
-		CreatedAt:  time.Now().Unix(),
+		ID:              uuid.NewString(),
+		PlayerId:        input.PlayerId,
+		MatchParameters: input.MatchParameters,
+		Status:          entities.MatchmakingStatus_Pending,
+		CreatedAt:       time.Now().Unix(),
 	}
 
 	set := c.redisGateway.HSet(ctx, c.ticketsRedisSetName, input.PlayerId, ticket)
@@ -56,19 +53,25 @@ func (c *CreateTicketUseCase) CreateTicket(ctx context.Context, input CreateTick
 		return CreateTicketOutput{}, set.Err()
 	}
 
-	cmd := c.redisGateway.ZAdd(ctx, string(entities.MatchmakingTicketParameterType_Table), redis.Z{
-		Score:  float64(input.Table),
-		Member: input.PlayerId,
-	})
-	if cmd.Err() != nil {
-		log.Print(cmd.Err())
+	playerParameterMap := map[entities.MatchmakingTicketParameterType]float64{}
+	for _, parameter := range input.PlayerParameters {
+		playerParameterMap[parameter.Type] = parameter.Value
 	}
-	cmd = c.redisGateway.ZAdd(ctx, string(entities.MatchmakingTicketParameterType_League), redis.Z{
-		Score:  float64(input.League),
-		Member: input.PlayerId,
-	})
-	if cmd.Err() != nil {
-		log.Print(cmd.Err())
+
+	for _, parameter := range input.MatchParameters {
+		score, ok := playerParameterMap[parameter.Type]
+		if !ok {
+			// if the player does not pass the parameter he won't be matched with other players who request it
+			continue
+		}
+
+		cmd := c.redisGateway.ZAdd(ctx, string(parameter.Type), redis.Z{
+			Score:  score,
+			Member: input.PlayerId,
+		})
+		if cmd.Err() != nil {
+			log.Print(cmd.Err())
+		}
 	}
 
 	return CreateTicketOutput{

@@ -28,10 +28,22 @@ func NewTicketsAPI(uc TicketsAPIUseCases) *TicketsAPI {
 }
 
 type CreateMatchmakingTicketRequest struct {
-	Parameters []entities.MatchmakingTicketParameter
-	PlayerId   string
-	League     int64
-	Table      int64
+	MatchParameters  []entities.MatchmakingTicketParameter       `json:"MatchParameters"`
+	PlayerId         string                                      `json:"PlayerId"`
+	PlayerParameters []tickets.CreateTicketInputPlayerParameters `json:"PlayerParameters"`
+}
+
+// ValidateCreateMatchmakingTicket TODO: we might want to limit the amount of parameters since it might affect performance
+func (api *TicketsAPI) ValidateCreateMatchmakingTicket(ctx context.Context, req CreateMatchmakingTicketRequest) error {
+	if len(req.MatchParameters) == 0 {
+		return tickets.InvalidTicketParametersErr
+	}
+
+	if len(req.PlayerParameters) == 0 {
+		return tickets.InvalidPlayerParameters
+	}
+
+	return nil
 }
 
 func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, request *http.Request) {
@@ -52,19 +64,20 @@ func (api *TicketsAPI) CreateMatchmakingTicket(writer http.ResponseWriter, reque
 		return
 	}
 
+	err = api.ValidateCreateMatchmakingTicket(ctx, req)
+	if err != nil {
+		log.Println(err)
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte(err.Error()))
+		return
+	}
+
 	output, err := api.uc.CreateTicket(ctx, tickets.CreateTicketInput{
-		PlayerId:   req.PlayerId,
-		League:     req.League,
-		Table:      req.Table,
-		Parameters: req.Parameters,
+		PlayerId:         req.PlayerId,
+		PlayerParameters: req.PlayerParameters,
+		MatchParameters:  req.MatchParameters,
 	})
 	if err != nil {
-		if errors.Is(err, tickets.InvalidTicketParametersErr) {
-			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte(err.Error()))
-			return
-		}
-
 		log.Println(err)
 		writer.WriteHeader(http.StatusInternalServerError)
 		return

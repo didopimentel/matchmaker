@@ -11,14 +11,12 @@ const (
 )
 
 type MatchmakingTicket struct {
-	ID            string
-	PlayerId      string
-	League        int64
-	Table         int64
-	CreatedAt     int64
-	Status        MatchmakingStatus
-	GameSessionId string
-	Parameters    []MatchmakingTicketParameter
+	ID              string
+	PlayerId        string
+	CreatedAt       int64
+	Status          MatchmakingStatus
+	GameSessionId   string
+	MatchParameters []MatchmakingTicketParameter
 }
 
 func (i MatchmakingTicket) MarshalBinary() (data []byte, err error) {
@@ -26,12 +24,8 @@ func (i MatchmakingTicket) MarshalBinary() (data []byte, err error) {
 	return bytes, err
 }
 
+// MatchmakingTicketParameterType allows us to define which parameters we will accept later on
 type MatchmakingTicketParameterType string
-
-const (
-	MatchmakingTicketParameterType_League MatchmakingTicketParameterType = "league"
-	MatchmakingTicketParameterType_Table  MatchmakingTicketParameterType = "table"
-)
 
 type MatchmakingTicketParameterOperator string
 
@@ -45,5 +39,5 @@ const (
 type MatchmakingTicketParameter struct {
 	Type     MatchmakingTicketParameterType
 	Operator MatchmakingTicketParameterOperator
-	Value    int64
+	Value    float64
 }

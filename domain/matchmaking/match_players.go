@@ -98,7 +98,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 			// Append the player
 			eligibleOpponents = append(eligibleOpponents, playerTicket.PlayerId)
 			eligibleOpponentsCountMap := map[string]int{}
-			for _, parameter := range playerTicket.Parameters {
+			for _, parameter := range playerTicket.MatchParameters {
 				var result *redis.StringSliceCmd
 				switch parameter.Operator {
 				case entities.MatchmakingTicketParameterOperator_Equal:
@@ -109,14 +109,14 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 					})
 				case entities.MatchmakingTicketParameterOperator_GreaterThan:
 					result = m.redisGateway.ZRangeByScore(ctx, string(parameter.Type), &redis.ZRangeBy{
-						Min:   fmt.Sprintf("(%d", parameter.Value),
+						Min:   fmt.Sprintf("(%f", parameter.Value),
 						Max:   "+inf",
 						Count: int64(m.cfg.MaxCountPerMatch),
 					})
 				case entities.MatchmakingTicketParameterOperator_SmallerThan:
 					result = m.redisGateway.ZRangeByScore(ctx, string(parameter.Type), &redis.ZRangeBy{
 						Min:   "0",
-						Max:   fmt.Sprintf("(%d", parameter.Value),
+						Max:   fmt.Sprintf("(%f", parameter.Value),
 						Count: int64(m.cfg.MaxCountPerMatch),
 					})
 				case entities.MatchmakingTicketParameterOperator_NotEqual:
@@ -144,7 +144,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 						eligibleOpponentsCountMap[opponent] = c + 1
 					}
 
-					if eligibleOpponentsCountMap[opponent] == len(playerTicket.Parameters) {
+					if eligibleOpponentsCountMap[opponent] == len(playerTicket.MatchParameters) {
 						eligibleOpponents = append(eligibleOpponents, opponent)
 					}
 
@@ -161,7 +161,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 				gameSessionId := uuid.New().String()
 				matchedSessions = append(matchedSessions, PlayerSession{PlayerIds: eligibleOpponents, SessionID: gameSessionId})
 				for _, opponent := range eligibleOpponents {
-					for _, parameter := range playerTicket.Parameters {
+					for _, parameter := range playerTicket.MatchParameters {
 						if err = m.redisGateway.ZRem(ctx, string(parameter.Type), opponent).Err(); err != nil {
 							return MatchPlayersOutput{}, err
 						}
@@ -183,7 +183,7 @@ func (m *MatchPlayersUseCase) MatchPlayers(ctx context.Context) (MatchPlayersOut
 					return MatchPlayersOutput{}, err
 				}
 
-				for _, parameter := range playerTicket.Parameters {
+				for _, parameter := range playerTicket.MatchParameters {
 					if err = m.redisGateway.ZRem(ctx, string(parameter.Type), playerTicket.PlayerId).Err(); err != nil {
 						return MatchPlayersOutput{}, err
 					}

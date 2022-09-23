@@ -32,16 +32,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
 				PlayerId: uuid.NewString(),
-				League:   5,
-				Table:    6,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 5,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 6,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    5,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    6,
 					},
@@ -49,16 +57,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   7,
-				Table:    8,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 7,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 8,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    7,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    8,
 					},
@@ -66,16 +82,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   7,
-				Table:    8,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 7,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 8,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    7,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    8,
 					},
@@ -83,16 +107,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   10,
-				Table:    11,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 10,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 11,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    10,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    11,
 					},
@@ -100,16 +132,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   15,
-				Table:    16,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 15,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 16,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    15,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    16,
 					},
@@ -175,16 +215,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
 				PlayerId: uuid.NewString(),
-				League:   5,
-				Table:    6,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 5,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 6,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_GreaterThan,
 						Value:    5,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_GreaterThan,
 						Value:    6,
 					},
@@ -192,16 +240,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   7,
-				Table:    8,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 7,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 8,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    7,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    8,
 					},
@@ -209,16 +265,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   10,
-				Table:    11,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 10,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 11,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    10,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    11,
 					},
@@ -226,16 +290,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   15,
-				Table:    16,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 15,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 16,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    15,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    16,
 					},
@@ -275,16 +347,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
 				PlayerId: uuid.NewString(),
-				League:   5,
-				Table:    6,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 5,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 6,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    5,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    6,
 					},
@@ -292,16 +372,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   7,
-				Table:    8,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 7,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 8,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    7,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    8,
 					},
@@ -309,16 +397,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   10,
-				Table:    11,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 10,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 11,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 						Value:    10,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 						Value:    11,
 					},
@@ -326,16 +422,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   15,
-				Table:    16,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 15,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 16,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    15,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    16,
 					},
@@ -375,16 +479,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 		createTicketInputs := []tickets.CreateTicketInput{
 			{
 				PlayerId: uuid.NewString(),
-				League:   5,
-				Table:    6,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 5,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 6,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    5,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    6,
 					},
@@ -392,16 +504,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   7,
-				Table:    8,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 7,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 8,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    7,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    8,
 					},
@@ -409,16 +529,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   7,
-				Table:    8,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 7,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 8,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    7,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    8,
 					},
@@ -426,16 +554,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   10,
-				Table:    11,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 10,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 11,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    10,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    11,
 					},
@@ -443,16 +579,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 			},
 			{
 				PlayerId: uuid.NewString(),
-				League:   15,
-				Table:    16,
-				Parameters: []entities.MatchmakingTicketParameter{
+				PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 					{
-						Type:     entities.MatchmakingTicketParameterType_League,
+						Type:  entities.MatchmakingTicketParameterType("league"),
+						Value: 15,
+					},
+					{
+						Type:  entities.MatchmakingTicketParameterType("table"),
+						Value: 16,
+					},
+				},
+				MatchParameters: []entities.MatchmakingTicketParameter{
+					{
+						Type:     entities.MatchmakingTicketParameterType("league"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    15,
 					},
 					{
-						Type:     entities.MatchmakingTicketParameterType_Table,
+						Type:     entities.MatchmakingTicketParameterType("table"),
 						Operator: entities.MatchmakingTicketParameterOperator_Equal,
 						Value:    16,
 					},
@@ -493,16 +637,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createTicketInput := tickets.CreateTicketInput{
 			PlayerId: uuid.NewString(),
-			League:   5,
-			Table:    6,
-			Parameters: []entities.MatchmakingTicketParameter{
+			PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 				{
-					Type:     entities.MatchmakingTicketParameterType_League,
+					Type:  entities.MatchmakingTicketParameterType("league"),
+					Value: 5,
+				},
+				{
+					Type:  entities.MatchmakingTicketParameterType("table"),
+					Value: 6,
+				},
+			},
+			MatchParameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType("league"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    5,
 				},
 				{
-					Type:     entities.MatchmakingTicketParameterType_Table,
+					Type:     entities.MatchmakingTicketParameterType("table"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    6,
 				},
@@ -530,16 +682,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createAnotherTicketInput := tickets.CreateTicketInput{
 			PlayerId: uuid.NewString(),
-			League:   5,
-			Table:    6,
-			Parameters: []entities.MatchmakingTicketParameter{
+			PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 				{
-					Type:     entities.MatchmakingTicketParameterType_League,
+					Type:  entities.MatchmakingTicketParameterType("league"),
+					Value: 5,
+				},
+				{
+					Type:  entities.MatchmakingTicketParameterType("table"),
+					Value: 6,
+				},
+			},
+			MatchParameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType("league"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    5,
 				},
 				{
-					Type:     entities.MatchmakingTicketParameterType_Table,
+					Type:     entities.MatchmakingTicketParameterType("table"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    6,
 				},
@@ -568,16 +728,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createTicketInput := tickets.CreateTicketInput{
 			PlayerId: uuid.NewString(),
-			League:   5,
-			Table:    6,
-			Parameters: []entities.MatchmakingTicketParameter{
+			PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 				{
-					Type:     entities.MatchmakingTicketParameterType_League,
+					Type:  entities.MatchmakingTicketParameterType("league"),
+					Value: 5,
+				},
+				{
+					Type:  entities.MatchmakingTicketParameterType("table"),
+					Value: 6,
+				},
+			},
+			MatchParameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType("league"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    5,
 				},
 				{
-					Type:     entities.MatchmakingTicketParameterType_Table,
+					Type:     entities.MatchmakingTicketParameterType("table"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    6,
 				},
@@ -610,16 +778,24 @@ func TestMatchPlayersUseCase_MatchPlayers(t *testing.T) {
 
 		createAnotherTicketInput := tickets.CreateTicketInput{
 			PlayerId: uuid.NewString(),
-			League:   5,
-			Table:    6,
-			Parameters: []entities.MatchmakingTicketParameter{
+			PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 				{
-					Type:     entities.MatchmakingTicketParameterType_League,
+					Type:  entities.MatchmakingTicketParameterType("league"),
+					Value: 5,
+				},
+				{
+					Type:  entities.MatchmakingTicketParameterType("table"),
+					Value: 6,
+				},
+			},
+			MatchParameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType("league"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    5,
 				},
 				{
-					Type:     entities.MatchmakingTicketParameterType_Table,
+					Type:     entities.MatchmakingTicketParameterType("table"),
 					Operator: entities.MatchmakingTicketParameterOperator_Equal,
 					Value:    6,
 				},

@@ -24,31 +24,38 @@ There are three components in this system.
 
 The first step is to create a ticket through the API by calling the endpoint `POST /matchmaking/tickets`. This endpoint 
 expects the following fields in the body:
-- playerId: the player's unique id
-- league: the player's current league
-- table: the player's current table
-- parameters: an array of parameters
-  - type: the parameter type. Must be one of `league` or `table`.
-  - operator: the parameter operator. Must be one of `=`, `<` or `>`.
-  - value: the value to be compared to.
+- PlayerId: the player's unique id
+- 
+- Parameters: an array of parameters
+  - Type: the parameter type.
+  - Operator: the parameter operator. Must be one of `=`, `<` or `>`.
+  - Value: the value to be compared to.
 
 Example:
 
 ```json
 {
-  "playerId": "aec2c1a2-770c-4903-a18c-b3816b384b21",          
-  "league": 6,               
-  "table": 6,
-  "parameters": [
+  "PlayerId": "aec2c1a2-770c-4903-a18c-b3816b384b21",
+  "PlayerParameters": [
     {
-      "type": "league",
-      "operator": "=",
-      "value": 6
+      "Type": "league",
+      "Value": 6
     },
     {
-      "type": "table",
-      "operator": "=",
-      "value": 6
+      "Type": "table",
+      "Value": 6
+    }
+  ],
+  "MatchParameters": [
+    {
+      "Type": "league",
+      "Operator": "=",
+      "Value": 6
+    },
+    {
+      "Type": "table",
+      "Operator": "=",
+      "Value": 6
     }
   ]
 }
@@ -81,12 +88,3 @@ Run API with command: `make run-api`
 Run Matchmaker with command: `make run-matchmaker`
 
 Run Tickets Cleaner with command: `make run-cleaner`
-
-
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)

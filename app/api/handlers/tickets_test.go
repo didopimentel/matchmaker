@@ -26,19 +26,17 @@ func TestTicketsAPI_GetMatchmakingTicket(t *testing.T) {
 	ticket := entities.MatchmakingTicket{
 		ID:            uuid.NewString(),
 		PlayerId:      uuid.NewString(),
-		League:        5,
-		Table:         5,
 		CreatedAt:     time.Now().Unix(),
 		Status:        entities.MatchmakingStatus_Pending,
 		GameSessionId: "",
-		Parameters: []entities.MatchmakingTicketParameter{
+		MatchParameters: []entities.MatchmakingTicketParameter{
 			{
-				Type:     entities.MatchmakingTicketParameterType_Table,
+				Type:     entities.MatchmakingTicketParameterType("table"),
 				Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 				Value:    5,
 			},
 			{
-				Type:     entities.MatchmakingTicketParameterType_League,
+				Type:     entities.MatchmakingTicketParameterType("league"),
 				Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 				Value:    5,
 			},
@@ -76,9 +74,7 @@ func TestTicketsAPI_GetMatchmakingTicket(t *testing.T) {
 
 	require.Equal(t, ticket.PlayerId, response.Ticket.PlayerId)
 	require.Equal(t, ticket.Status, response.Ticket.Status)
-	require.Equal(t, ticket.Parameters, response.Ticket.Parameters)
-	require.Equal(t, ticket.Table, response.Ticket.Table)
-	require.Equal(t, ticket.League, response.Ticket.League)
+	require.Equal(t, ticket.MatchParameters, response.Ticket.MatchParameters)
 	require.Equal(t, ticket.CreatedAt, response.Ticket.CreatedAt)
 	require.Equal(t, ticket.ID, response.Ticket.ID)
 }
@@ -114,19 +110,17 @@ func TestTicketsAPI_CreateMatchmakingTicket(t *testing.T) {
 	ticket := entities.MatchmakingTicket{
 		ID:            uuid.NewString(),
 		PlayerId:      uuid.NewString(),
-		League:        5,
-		Table:         5,
 		CreatedAt:     time.Now().Unix(),
 		Status:        entities.MatchmakingStatus_Pending,
 		GameSessionId: "",
-		Parameters: []entities.MatchmakingTicketParameter{
+		MatchParameters: []entities.MatchmakingTicketParameter{
 			{
-				Type:     entities.MatchmakingTicketParameterType_Table,
+				Type:     entities.MatchmakingTicketParameterType("table"),
 				Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 				Value:    5,
 			},
 			{
-				Type:     entities.MatchmakingTicketParameterType_League,
+				Type:     entities.MatchmakingTicketParameterType("league"),
 				Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 				Value:    5,
 			},
@@ -149,21 +143,29 @@ func TestTicketsAPI_CreateMatchmakingTicket(t *testing.T) {
 	defer testServer.Close()
 
 	request := handlers.CreateMatchmakingTicketRequest{
-		Parameters: []entities.MatchmakingTicketParameter{
+		MatchParameters: []entities.MatchmakingTicketParameter{
 			{
-				Type:     entities.MatchmakingTicketParameterType_Table,
+				Type:     entities.MatchmakingTicketParameterType("table"),
 				Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 				Value:    5,
 			},
 			{
-				Type:     entities.MatchmakingTicketParameterType_League,
+				Type:     entities.MatchmakingTicketParameterType("league"),
 				Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 				Value:    5,
 			},
 		},
 		PlayerId: uuid.NewString(),
-		League:   5,
-		Table:    5,
+		PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
+			{
+				Type:  entities.MatchmakingTicketParameterType("table"),
+				Value: 5,
+			},
+			{
+				Type:  entities.MatchmakingTicketParameterType("league"),
+				Value: 5,
+			},
+		},
 	}
 
 	var buf bytes.Buffer
@@ -187,9 +189,7 @@ func TestTicketsAPI_CreateMatchmakingTicket(t *testing.T) {
 
 	require.Equal(t, ticket.PlayerId, response.PlayerId)
 	require.Equal(t, ticket.Status, response.Status)
-	require.Equal(t, ticket.Parameters, response.Parameters)
-	require.Equal(t, ticket.Table, response.Table)
-	require.Equal(t, ticket.League, response.League)
+	require.Equal(t, ticket.MatchParameters, response.MatchParameters)
 	require.Equal(t, ticket.CreatedAt, response.CreatedAt)
 	require.Equal(t, ticket.ID, response.ID)
 }
@@ -197,10 +197,10 @@ func TestTicketsAPI_CreateMatchmakingTicket(t *testing.T) {
 func TestTicketsAPI_CreateMatchmakingTicket_Failure(t *testing.T) {
 	t.Parallel()
 
-	t.Run("should fail when parameters are invalid", func(t *testing.T) {
+	t.Run("should fail when match parameters are invalid", func(t *testing.T) {
 		ticketsUc := &mocks.TicketsAPIUseCasesMock{
 			CreateTicketFunc: func(ctx context.Context, input tickets.CreateTicketInput) (tickets.CreateTicketOutput, error) {
-				return tickets.CreateTicketOutput{}, tickets.InvalidTicketParametersErr
+				return tickets.CreateTicketOutput{}, nil
 			},
 		}
 
@@ -212,21 +212,61 @@ func TestTicketsAPI_CreateMatchmakingTicket_Failure(t *testing.T) {
 		defer testServer.Close()
 
 		request := handlers.CreateMatchmakingTicketRequest{
-			Parameters: []entities.MatchmakingTicketParameter{
+			MatchParameters: []entities.MatchmakingTicketParameter{},
+			PlayerParameters: []tickets.CreateTicketInputPlayerParameters{
 				{
-					Type:     entities.MatchmakingTicketParameterType_Table,
+					Type:  entities.MatchmakingTicketParameterType("table"),
+					Value: 5,
+				},
+				{
+					Type:  entities.MatchmakingTicketParameterType("league"),
+					Value: 5,
+				},
+			},
+			PlayerId: uuid.NewString(),
+		}
+
+		var buf bytes.Buffer
+		err := json.NewEncoder(&buf).Encode(request)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		res, err := http.Post(fmt.Sprintf("%s/matchmaking/tickets", testServer.URL), "application/json", &buf)
+		require.NoError(t, err)
+
+		require.Equal(t, http.StatusBadRequest, res.StatusCode)
+	})
+
+	t.Run("should fail when player parameters are invalid", func(t *testing.T) {
+		ticketsUc := &mocks.TicketsAPIUseCasesMock{
+			CreateTicketFunc: func(ctx context.Context, input tickets.CreateTicketInput) (tickets.CreateTicketOutput, error) {
+				return tickets.CreateTicketOutput{}, nil
+			},
+		}
+
+		server := handlers.NewServer(handlers.UseCases{
+			TicketsAPIUseCases: ticketsUc,
+		})
+
+		testServer := httptest.NewServer(server)
+		defer testServer.Close()
+
+		request := handlers.CreateMatchmakingTicketRequest{
+			MatchParameters: []entities.MatchmakingTicketParameter{
+				{
+					Type:     entities.MatchmakingTicketParameterType("table"),
 					Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 					Value:    5,
 				},
 				{
-					Type:     entities.MatchmakingTicketParameterType_League,
+					Type:     entities.MatchmakingTicketParameterType("league"),
 					Operator: entities.MatchmakingTicketParameterOperator_SmallerThan,
 					Value:    5,
 				},
 			},
-			PlayerId: uuid.NewString(),
-			League:   5,
-			Table:    5,
+			PlayerParameters: []tickets.CreateTicketInputPlayerParameters{},
+			PlayerId:         uuid.NewString(),
 		}
 
 		var buf bytes.Buffer
