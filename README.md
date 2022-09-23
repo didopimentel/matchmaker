@@ -25,8 +25,10 @@ There are three components in this system.
 The first step is to create a ticket through the API by calling the endpoint `POST /matchmaking/tickets`. This endpoint 
 expects the following fields in the body:
 - PlayerId: the player's unique id
-- 
-- Parameters: an array of parameters
+- PlayerParameters: an array of the player parameters
+  - Type: the parameter type.
+  - Value: the value of the parameters for the player. 
+- MatchParameters: an array of parameters
   - Type: the parameter type.
   - Operator: the parameter operator. Must be one of `=`, `<` or `>`.
   - Value: the value to be compared to.
