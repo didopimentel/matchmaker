@@ -90,3 +90,13 @@ Run API with command: `make run-api`
 Run Matchmaker with command: `make run-matchmaker`
 
 Run Tickets Cleaner with command: `make run-cleaner`
+
+## Implementation
+
+The matchmaker makes use of Redis Sorted Sets to match players and Hashes to store tickets. When a ticket is created, it adds, a scored member for 
+each PlayerParameter.
+When the matchmaking worker runs, it scans through all tickets grabbing the MatchParameters. For each of those parameters it tries to find a scored
+member (player) that matches the requirement of that ticket. If that another player meets all requirements it adds to a temporary "match". A match
+is only found if enough players meet all the requirements.
+
+![Matchmaker Architecture](static/matchmaker.png "Matchmaker Architecture")
